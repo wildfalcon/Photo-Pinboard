@@ -1,7 +1,43 @@
 // NOTES
 // The File api at http://www.w3.org/TR/FileAPI/ 
 
+var LocalReader = (function () {
+  
+  function LocalReader () {
+    this.keys = [];
+  }
+  
+  LocalReader.prototype = {
+    forEach: function (iterator) {
+      console.log("reading local storage")
+      for(i=0; i < localStorage.length; i++){
+        var key = localStorage.key(i);
+        var item = localStorage.getItem(key);
+        iterator(key, item)
+      }
+    }
+  }
+  
+  return LocalReader;
+})();
+
+function addImage($container, image_data) {
+  var image = new Image();
+  image.onload = function () {
+    var $self = $(this);
+    $(this).attr('width', 200).appendTo($container);          
+  }
+  image.src = image_data;
+}
+
 window.addEventListener("load", function(evt){
+  
+  var storageReader = new LocalReader();
+  
+  storageReader.forEach(function (key, image_data) {
+    console.log(key)
+    addImage($('#images'), image_data)
+  })
   
   //
   // Need to turn off default dragover behaviour to get
@@ -19,12 +55,8 @@ window.addEventListener("load", function(evt){
     
     fileReader.onloadend = function(evt){
       if (!evt.target.error) {
-        var image = new Image();
-        image.onload = function () {
-          var $self = $(this);
-          $(this).attr('width', 200).appendTo('#images');          
-        }
-        image.src = evt.target.result;
+        addImage($('#images'), evt.target.result)
+        localStorage.setItem(file.fileName, evt.target.result)
       }
     };
     
@@ -32,7 +64,8 @@ window.addEventListener("load", function(evt){
       console.log("Error", evt)
     }
     
-    fileReader.readAsDataURL(evt.dataTransfer.files[0]);
+    var file = evt.dataTransfer.files[0];
+    fileReader.readAsDataURL(file);
     
     evt.stopPropagation();
     evt.preventDefault();
