@@ -30,7 +30,7 @@ function addImage($container, image_data) {
   image.src = image_data;
 }
 
-window.addEventListener("load", function(evt){
+document.addEventListener("load", function(evt){
   
   var storageReader = new LocalReader();
   socket = new WebSocket("ws://eyas.local:8080");
@@ -51,23 +51,23 @@ window.addEventListener("load", function(evt){
   // Need to turn off default dragover behaviour to get
   // filedropping to work
   //
-  document.addEventListener('dragover', function (evt) {
+  var stopPropagation = function(evt){
     evt.stopPropagation();
     evt.preventDefault();
-  }, false);
-
+  }
+  
+  document.addEventListener('dragenter', stopPropagation, false);
+  document.addEventListener('dragexit', stopPropagation, false);
+  document.addEventListener('dragover', stopPropagation, false); 
   document.addEventListener('drop', function (evt) {
     var fileReader = new FileReader();
-    
     fileReader.onloadend = function(evt){
       if (!evt.target.error) {
-        // addImage($('#images'), evt.target.result)
         image = {
           name: file.fileName,
           data: evt.target.result
         }
         socket.send(JSON.stringify(image))
-        // localStorage.setItem(file.fileName, evt.target.result)
       }
     };
     
@@ -83,4 +83,4 @@ window.addEventListener("load", function(evt){
   }, false)
   
  
-})
+}, true)
